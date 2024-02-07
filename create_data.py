@@ -4,16 +4,17 @@ import midi2img
 
 def create_data():
     # Define the directory containing MIDI files
-    midi_dir = "C:\\Users\\esade\\PycharmProjects\\DL4CV\\midi_files"  # path_to_directory_containing_midifiles
+    midi_dir = "C:\\Users\\97254\\Desktop\\Masters-semester-A\\Deep_Learning_for_Computer_Vision_Fundamentals_and_Applications\\final_project\\code\\midi_files\\"  # path_to_directory_containing_midifiles
+    png_dir = "C:\\Users\\97254\\Desktop\\Masters-semester-A\\Deep_Learning_for_Computer_Vision_Fundamentals_and_Applications\\final_project\\code\\png_files\\"
 
     # Get a list of all files in the directory
     files = os.listdir(midi_dir)
 
     # Filter out only the MIDI files
-    midi_files = ["C:\\Users\\esade\\PycharmProjects\\DL4CV\\midi_files\\" + f for f in files if f.endswith(".mid")]
+    midi_files = [midi_dir + f for f in files if f.endswith(".mid")]
 
     # Output directory for saving images
-    output_dir = "C:\\Users\\esade\\PycharmProjects\\DL4CV\\png_files\\"  # output_images
+    output_dir = png_dir  # output_images
 
     for i in range(len(midi_files)):
         # Convert MIDI files to images

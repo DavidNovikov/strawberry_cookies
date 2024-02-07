@@ -41,7 +41,7 @@ def print_testing_to_console(losses):
     print(f'test loss:{rec_loss}{idem_loss}')
 
 
-def train(f, data_loader):
+def test(f, data_loader):
     """
         This function runs over the training data and reports the reconstruction and idempotent loss
     """
@@ -67,5 +67,7 @@ def train(f, data_loader):
         total_epoch_loss_rec += total_epoch_loss_rec
         total_epoch_loss_idem += total_epoch_loss_idem
 
+    print("########################################################")
+    print("test")
     print_testing_to_console({'loss_rec': total_epoch_loss_rec,
                               'loss_idem': total_epoch_loss_idem})

@@ -43,7 +43,7 @@ def print_training_to_console(losses):
     print(f'{epoch}{rec_loss}{idem_loss}{tight_loss}')
 
 
-def train(f, f_copy, opt, data_loader, n_epochs):
+def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
     """
         This function runs n_epochs epochs and saves the training loss at every epoch
     """
@@ -67,7 +67,7 @@ def train(f, f_copy, opt, data_loader, n_epochs):
         total_epoch_loss_rec = 0
         total_epoch_loss_idem = 0
         total_epoch_loss_tight = 0
-        for x in data_loader:
+        for x, _ in train_data_loader:
             z = torch.randn_like(x)
 
             # apply f to get all needed
@@ -113,4 +113,40 @@ def train(f, f_copy, opt, data_loader, n_epochs):
             best_loss['loss_tight'] = total_epoch_loss_tight
 
         # print the training results to the console
+        print("########################################################")
+        print("train")
         print_training_to_console(losses)
+
+    valid(f, valid_data_loader)
+
+
+def valid(f, data_loader):
+    """
+        This function runs over the training data and reports the reconstruction and idempotent loss
+    """
+    f.eval()
+    total_epoch_loss_rec = 0
+    total_epoch_loss_idem = 0
+    for x in data_loader:
+        z = torch.randn_like(x)
+
+        # apply f to get all needed
+        fx = f(x)
+        fz = f(z)
+        ffz = f(fz)
+
+        # calculate losses
+        loss_rec = (fx - x).pow(2).mean()
+        loss_idem = (ffz - fz).pow(2).mean()
+
+        # optimize for losses
+        loss = loss_rec + loss_idem
+
+        # accumulate the loss
+        total_epoch_loss_rec += total_epoch_loss_rec
+        total_epoch_loss_idem += total_epoch_loss_idem
+
+    print("########################################################")
+    print("valid")
+    print_training_to_console({'loss_rec': total_epoch_loss_rec,
+                               'loss_idem': total_epoch_loss_idem})

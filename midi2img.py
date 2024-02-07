@@ -38,8 +38,8 @@ def get_notes(notes_to_parse):
     return {"start": start, "pitch": notes, "dur": durations}
 
 
-def midi2image(midi_path, output_dir, max_repetitions=float("inf"), resolution=0.25, lowerBoundNote=21, upperBoundNote=127,
-               maxSongLength=106 ):
+def midi2image(midi_path, output_dir, max_repetitions=float("inf"), resolution=0.25, lowerBoundNote=21, upperBoundNote=109,
+               maxSongLength=88 ):
     mid = converter.parse(midi_path)
 
     instruments = instrument.partitionByInstrument(mid)
@@ -95,12 +95,12 @@ def midi2image(midi_path, output_dir, max_repetitions=float("inf"), resolution=0
             else:
                 break
 
-
-if __name__ == "__main__":
-    midi_path = sys.argv[1]
-
-    if len(sys.argv) >= 3:
-        max_repetitions = int(sys.argv[2])
-        midi2image(midi_path, max_repetitions)
-    else:
-        midi2image(midi_path)
+#
+# if __name__ == "__main__":
+#     midi_path = sys.argv[1]
+#
+#     if len(sys.argv) >= 3:
+#         max_repetitions = int(sys.argv[2])
+#         midi2image(midi_path, max_repetitions)
+#     else:
+#         midi2image(midi_path)

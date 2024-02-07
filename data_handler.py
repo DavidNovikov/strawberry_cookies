@@ -11,13 +11,13 @@ from torchvision.transforms import transforms
 def data_set_split(path, train_ratio=0.8, valid_ratio=0.1, test_ratio=0.1, batch_size=32, shuffle=True):
     # Define transformations to be applied to the images
 
-    # transform = transforms.Compose([
-    #     transforms.Resize((256, 256)),
-    #     transforms.ToTensor()
-    # ])
+    transform = transforms.Compose([
+        transforms.Grayscale(),  # Convert to grayscale
+        transforms.ToTensor()
+    ])
 
     # Create a dataset from the images at the specified path
-    dataset = ImageFolder(root=path)  # you can add a transformation here
+    dataset = ImageFolder(root=path, transform=transform)  # you can add a transformation here
 
     # Calculate the sizes of the training, validation, and test sets
     num_samples = len(dataset)
