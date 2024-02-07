@@ -8,16 +8,16 @@ class encoder_decoder_net(nn.Module):
         super(encoder_decoder_net, self).__init__()
 
         # encoder
-        self.conv1 = nn.Conv2d(input_dim, input_dim/2, kernel_size=(4,4), stride=2)
-        self.conv2 = nn.Conv2d(input_dim/2, input_dim / 4, kernel_size=(4, 4), stride=2)
-        self.conv3 = nn.Conv2d(input_dim / 4, input_dim / 8, kernel_size=(4, 4), stride=2)
-        self.conv4 = nn.Conv2d(input_dim / 8, input_dim / 16, kernel_size=(4, 4), stride=2)
+        self.conv1 = nn.Conv2d(input_dim, input_dim*2, kernel_size=4, stride=4)
+        self.conv2 = nn.Conv2d(input_dim*2, input_dim * 4, kernel_size=4, stride=4)
+        self.conv3 = nn.Conv2d(input_dim * 4, input_dim * 8, kernel_size=4, stride=2)
+        self.conv4 = nn.Conv2d(input_dim * 8, input_dim * 16, kernel_size=4, stride=2)
 
         # decoder
-        self.deconv1 = nn.ConvTranspose2d(input_dim/16, input_dim/8, kernel_size=(4,4), stride=2)
-        self.deconv2 = nn.ConvTranspose2d(input_dim/8, input_dim / 4, kernel_size=(4, 4), stride=2)
-        self.deconv3 = nn.ConvTranspose2d(input_dim / 4, input_dim / 2, kernel_size=(4, 4), stride=2)
-        self.deconv4 = nn.ConvTranspose2d(input_dim / 2, input_dim, kernel_size=(4, 4), stride=2)
+        self.deconv1 = nn.ConvTranspose2d(input_dim*16, input_dim*8, kernel_size=4, stride=2)
+        self.deconv2 = nn.ConvTranspose2d(input_dim*8, input_dim * 4, kernel_size=4, stride=2)
+        self.deconv3 = nn.ConvTranspose2d(input_dim * 4, input_dim * 2, kernel_size=4, stride=4)
+        self.deconv4 = nn.ConvTranspose2d(input_dim * 2, input_dim, kernel_size=4, stride=4)
 
         self.relu = nn.ReLU()
 
