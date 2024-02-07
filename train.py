@@ -37,9 +37,9 @@ def print_training_to_console(losses):
         Print the training results to the console
     """
     epoch = f'epoch:{len(losses)}\n'
-    rec_loss = f"\treconstruction loss:{losses['loss_rec']}\n"
-    idem_loss = f"\tidempotent loss:{losses['loss_idem']}\n"
-    tight_loss = f"\ttighting loss:{losses['loss_tight']}\n"
+    rec_loss = f"\treconstruction loss:{losses['loss_rec'][-1]}\n"
+    idem_loss = f"\tidempotent loss:{losses['loss_idem'][-1]}\n"
+    tight_loss = f"\ttighting loss:{losses['loss_tight'][-1]}\n"
     print(f'{epoch}{rec_loss}{idem_loss}{tight_loss}')
 
 
@@ -47,6 +47,8 @@ def train(f, f_copy, opt, data_loader, n_epochs):
     """
         This function runs n_epochs epochs and saves the training loss at every epoch
     """
+    f.train()
+
     new_exp_dir = make_new_exp()
     tight_loss_coefficient = 0.1
 
