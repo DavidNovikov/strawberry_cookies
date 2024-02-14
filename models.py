@@ -1,5 +1,7 @@
 # MIDINET ARC- SKIP CONECCTIONS
 from torch import nn
+import torch.nn.functional as F
+
 
 
 class encoder_decoder_net_notes_first(nn.Module):
@@ -12,13 +14,15 @@ class encoder_decoder_net_notes_first(nn.Module):
         self.conv4 = Down_Conv(64, 128, kernel_size=(4, 6), stride=2)
 
         # decoder
-        self.deconv1 = Up_Conv(64, 128, kernel_size=(4, 6), stride=2)
+        self.deconv1 = Up_Conv(128, 64, kernel_size=(4, 6), stride=2)
         self.deconv2 = Up_Conv(
-            32, 64, kernel_size=(4, 12), stride=4)
+            64, 32, kernel_size=(4, 12), stride=4)
         self.deconv3 = Up_Conv(
-            16, 32, kernel_size=(4, 10), stride=2)
+            32, 16, kernel_size=(4, 10), stride=2)
         self.deconv4 = Up_Conv(
-            1, 16, kernel_size=(22, 1), stride=(2, 1))
+            16, 1, kernel_size=(22, 1), stride=(2, 1))
+
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         # Encoder
@@ -31,6 +35,9 @@ class encoder_decoder_net_notes_first(nn.Module):
         x = self.deconv2(x)
         x = self.deconv3(x)
         x = self.deconv4(x)
+        x = self.sigmoid(x)
+        #x = F.threshold(x, 0.5, 0 )
+        print(x)
         return x
 
 

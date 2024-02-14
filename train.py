@@ -1,5 +1,7 @@
 import torch
 import os
+import torch.nn.functional as F
+
 
 
 def make_new_exp():
@@ -91,9 +93,9 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
             f_fz = f_copy(fz)
 
             # calculate losses
-            loss_rec = (fx - x).pow(2).mean()
-            loss_idem = (f_fz - fz).pow(2).mean()
-            loss_tight = -(ff_z - f_z).pow(2).mean()
+            loss_rec = F.binary_cross_entropy(fx, x)
+            loss_idem = F.binary_cross_entropy(f_fz, fz)
+            loss_tight = -F.binary_cross_entropy(ff_z , f_z)
 
             # optimize for losses
             loss = loss_rec + loss_idem + loss_tight * tight_loss_coefficient
