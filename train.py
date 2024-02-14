@@ -3,6 +3,30 @@ import os
 import torch.nn.functional as F
 
 
+
+
+
+
+def wasserstein_distance(p_samples, q_samples):
+    """
+    Compute the 1-dimensional Wasserstein distance between two distributions.
+
+    Args:
+        p_samples (torch.Tensor): Samples from the first distribution.
+        q_samples (torch.Tensor): Samples from the second distribution.
+
+    Returns:
+        torch.Tensor: The Wasserstein distance.
+    """
+    # Sort samples
+    p_samples_sorted, _ = torch.sort(p_samples)
+    q_samples_sorted, _ = torch.sort(q_samples)
+
+    # Compute the distance
+    distance = torch.abs(p_samples_sorted - q_samples_sorted).mean()
+
+    return distance
+
 def make_new_exp():
     """
         This function creates a new directory to store the training results and returns it
@@ -81,9 +105,9 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
         total_epoch_loss_tight = 0
         shape = (1, 1, 88, 88)
         for x, _ in train_data_loader:
-            z = torch.bernoulli(torch.full(shape, 0.1))
-            # z = torch.randn_like(x)
-            # z = (z - z.min()) / (z.max() - z.min())
+            # z = torch.bernoulli(torch.full(shape, 0.1))
+            z = torch.randn_like(x)
+            z = (z - z.min()) / (z.max() - z.min())
 
             # put the data on the device
             x = x.to(device)
@@ -98,9 +122,9 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
             f_fz = f_copy(fz)
 
             # calculate losses
-            loss_rec = F.binary_cross_entropy(fx, x)
-            loss_idem = F.binary_cross_entropy(f_fz, fz)
-            loss_tight = -F.binary_cross_entropy(ff_z, f_z)
+            loss_rec = wasserstein_distance(fx, x)
+            loss_idem = wasserstein_distance(f_fz, fz)
+            loss_tight = -wasserstein_distance(ff_z, f_z)
 
             # optimize for losses
             loss = loss_rec + loss_idem + loss_tight * tight_loss_coefficient

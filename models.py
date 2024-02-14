@@ -35,9 +35,8 @@ class encoder_decoder_net_notes_first(nn.Module):
         x = self.deconv2(x)
         x = self.deconv3(x)
         x = self.deconv4(x)
-        x = self.sigmoid(x)
+        x = self.sigmoid(x/0.001)
         #x = F.threshold(x, 0.5, 0 )
-        print(x)
         return x
 
 
@@ -47,7 +46,7 @@ class Up_Conv(nn.Module):
 
         self.conv = nn.ConvTranspose2d(
             in_channels, out_channels, kernel_size=kernel_size, stride=stride)
-        self.drop = nn.Dropout(0.6)
+        self.drop = nn.Dropout(0.3)
         self.norm = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU()
 
@@ -62,7 +61,7 @@ class Down_Conv(nn.Module):
 
         self.conv = nn.Conv2d(in_channels, out_channels,
                               kernel_size=kernel_size, stride=stride)
-        self.drop = nn.Dropout(0.6)
+        self.drop = nn.Dropout(0.3)
         self.norm = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU()
 
