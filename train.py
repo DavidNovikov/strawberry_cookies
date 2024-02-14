@@ -36,11 +36,21 @@ def print_training_to_console(losses):
     """
         Print the training results to the console
     """
-    epoch = f'epoch:{len(losses)}\n'
+    epoch = f"epoch:{len(losses['loss_rec'])}\n"
     rec_loss = f"\treconstruction loss:{losses['loss_rec'][-1]}\n"
     idem_loss = f"\tidempotent loss:{losses['loss_idem'][-1]}\n"
     tight_loss = f"\ttighting loss:{losses['loss_tight'][-1]}\n"
     print(f'{epoch}{rec_loss}{idem_loss}{tight_loss}')
+
+
+def print_validation_to_console(losses):
+    """
+        Print the training results to the console
+    """
+    rec_loss = f"\treconstruction loss:{losses['loss_rec']}\n"
+    idem_loss = f"\tidempotent loss:{losses['loss_idem']}\n"
+    print(f'{rec_loss}{idem_loss}')
+
 
 
 def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
@@ -90,9 +100,9 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
             opt.step()
 
             # accumulate the loss
-            total_epoch_loss_rec += total_epoch_loss_rec
-            total_epoch_loss_idem += total_epoch_loss_idem
-            total_epoch_loss_tight += total_epoch_loss_tight
+            total_epoch_loss_rec += loss_rec
+            total_epoch_loss_idem += loss_idem
+            total_epoch_loss_tight += loss_tight
 
         # append the individual losses
         losses['loss_rec'].append(total_epoch_loss_rec)
@@ -127,7 +137,7 @@ def valid(f, data_loader):
     f.eval()
     total_epoch_loss_rec = 0
     total_epoch_loss_idem = 0
-    for x in data_loader:
+    for x, _ in data_loader:
         z = torch.randn_like(x)
 
         # apply f to get all needed
@@ -143,10 +153,10 @@ def valid(f, data_loader):
         loss = loss_rec + loss_idem
 
         # accumulate the loss
-        total_epoch_loss_rec += total_epoch_loss_rec
-        total_epoch_loss_idem += total_epoch_loss_idem
+        total_epoch_loss_rec += loss_rec
+        total_epoch_loss_idem += loss_idem
 
     print("########################################################")
     print("valid")
-    print_training_to_console({'loss_rec': total_epoch_loss_rec,
-                               'loss_idem': total_epoch_loss_idem})
+    print_validation_to_console({'loss_rec': total_epoch_loss_rec / len(data_loader),
+                               'loss_idem': total_epoch_loss_idem / len(data_loader)})
