@@ -77,8 +77,11 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
         total_epoch_loss_rec = 0
         total_epoch_loss_idem = 0
         total_epoch_loss_tight = 0
+        shape = (1, 1, 88, 88)
         for x, _ in train_data_loader:
-            z = torch.randn_like(x)
+            z = torch.bernoulli(torch.full(shape, 0.1))
+            # z = torch.randn_like(x)
+            # z = (z - z.min()) / (z.max() - z.min())
 
             # apply f to get all needed
             f_copy.load_state_dict(f.state_dict())
@@ -137,8 +140,11 @@ def valid(f, data_loader):
     f.eval()
     total_epoch_loss_rec = 0
     total_epoch_loss_idem = 0
+    shape = (1, 1, 88, 88)
     for x, _ in data_loader:
-        z = torch.randn_like(x)
+        z = torch.bernoulli(torch.full(shape, 0.1))
+        # z = torch.randn_like(x)
+        # z = (z - z.min()) / (z.max() - z.min())
 
         # apply f to get all needed
         fx = f(x)
