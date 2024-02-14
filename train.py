@@ -52,7 +52,6 @@ def print_validation_to_console(losses):
     print(f'{rec_loss}{idem_loss}')
 
 
-
 def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
     """
         This function runs n_epochs epochs and saves the training loss at every epoch
@@ -104,6 +103,10 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
             total_epoch_loss_idem += loss_idem
             total_epoch_loss_tight += loss_tight
 
+        total_epoch_loss_rec = total_epoch_loss_rec / len(train_data_loader)
+        total_epoch_loss_idem = total_epoch_loss_idem / len(train_data_loader)
+        total_epoch_loss_tight = total_epoch_loss_tight / \
+            len(train_data_loader)
         # append the individual losses
         losses['loss_rec'].append(total_epoch_loss_rec)
         losses['loss_idem'].append(total_epoch_loss_idem)
@@ -159,4 +162,4 @@ def valid(f, data_loader):
     print("########################################################")
     print("valid")
     print_validation_to_console({'loss_rec': total_epoch_loss_rec / len(data_loader),
-                               'loss_idem': total_epoch_loss_idem / len(data_loader)})
+                                 'loss_idem': total_epoch_loss_idem / len(data_loader)})
