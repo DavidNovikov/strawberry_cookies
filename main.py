@@ -9,7 +9,6 @@ from data_handler import data_set_split
 from generator import generator
 
 
-
 def create_train_param(cfg, train_data_loader, valid_data_loader):
     # (f, f_copy, opt, data_loader, n_epochs)
     n_epochs = cfg['n_epochs']
@@ -26,9 +25,9 @@ def main_learn():
         f'{os.getcwd()}\\png_files',
         batch_size=2)
     param = create_train_param(cfg, data_loader_train, data_loader_valid)
-    train(*param)
-    test(param[1], data_loader_test)
-    generator(param[1])
+    train(*param, cfg['device'])
+    test(param[1], data_loader_test, cfg['device'])
+    generator(param[1], cfg['device'])
 
 
 if __name__ == '__main__':

@@ -41,10 +41,11 @@ def print_testing_to_console(losses):
     print(f'test loss:{rec_loss}{idem_loss}')
 
 
-def test(f, data_loader):
+def test(f, data_loader, device):
     """
         This function runs over the training data and reports the reconstruction and idempotent loss
     """
+    f = f.to(device)
     f.eval()
     total_epoch_loss_rec = 0
     total_epoch_loss_idem = 0
@@ -54,6 +55,10 @@ def test(f, data_loader):
         z = torch.bernoulli(torch.full(shape, 0.1))
         # z = torch.randn_like(x)
         # z = (z - z.min()) / (z.max() - z.min())
+
+        # put the data on the device
+        x = x.to(device)
+        z = z.to(device)
 
         # apply f to get all needed
         fx = f(x)

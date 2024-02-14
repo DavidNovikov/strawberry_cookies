@@ -3,7 +3,6 @@ import os
 import torch.nn.functional as F
 
 
-
 def make_new_exp():
     """
         This function creates a new directory to store the training results and returns it
@@ -54,10 +53,12 @@ def print_validation_to_console(losses):
     print(f'{rec_loss}{idem_loss}')
 
 
-def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
+def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device):
     """
         This function runs n_epochs epochs and saves the training loss at every epoch
     """
+    f = f.to(device)
+    f_copy = f_copy.to(device)
     f.train()
 
     new_exp_dir = make_new_exp()
@@ -84,6 +85,10 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
             # z = torch.randn_like(x)
             # z = (z - z.min()) / (z.max() - z.min())
 
+            # put the data on the device
+            x = x.to(device)
+            z = z.to(device)
+
             # apply f to get all needed
             f_copy.load_state_dict(f.state_dict())
             fx = f(x)
@@ -95,7 +100,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
             # calculate losses
             loss_rec = F.binary_cross_entropy(fx, x)
             loss_idem = F.binary_cross_entropy(f_fz, fz)
-            loss_tight = -F.binary_cross_entropy(ff_z , f_z)
+            loss_tight = -F.binary_cross_entropy(ff_z, f_z)
 
             # optimize for losses
             loss = loss_rec + loss_idem + loss_tight * tight_loss_coefficient
@@ -135,13 +140,14 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs):
         print("train")
         print_training_to_console(losses)
 
-    valid(f, valid_data_loader)
+    valid(f, valid_data_loader, device)
 
 
-def valid(f, data_loader):
+def valid(f, data_loader, device):
     """
         This function runs over the training data and reports the reconstruction and idempotent loss
     """
+    f = f.to(device)
     f.eval()
     total_epoch_loss_rec = 0
     total_epoch_loss_idem = 0
@@ -150,6 +156,10 @@ def valid(f, data_loader):
         z = torch.bernoulli(torch.full(shape, 0.1))
         # z = torch.randn_like(x)
         # z = (z - z.min()) / (z.max() - z.min())
+
+        # put the data on the device
+        x = x.to(device)
+        z = z.to(device)
 
         # apply f to get all needed
         fx = f(x)
