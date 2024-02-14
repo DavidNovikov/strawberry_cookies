@@ -20,9 +20,9 @@ def create_train_param(cfg, train_data_loader, valid_data_loader):
 
 def main_learn():
     cfg = get_cfg()
-    print(f'{os.getcwd()}\\png_files')
+    path_to_data = f'{os.getcwd()}\\png_files' if cfg['os'] == 'nt' else f'{os.getcwd()}/png_files'
     data_loader_train, data_loader_valid, data_loader_test = data_set_split(
-        f'{os.getcwd()}\\png_files',
+        path_to_data,
         batch_size=2)
     param = create_train_param(cfg, data_loader_train, data_loader_valid)
     train(*param, cfg['device'])
