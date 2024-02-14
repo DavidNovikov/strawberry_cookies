@@ -48,7 +48,7 @@ def test(f, data_loader):
     f.eval()
     total_epoch_loss_rec = 0
     total_epoch_loss_idem = 0
-    for x in data_loader:
+    for x, _ in data_loader:
         z = torch.randn_like(x)
 
         # apply f to get all needed
@@ -64,10 +64,10 @@ def test(f, data_loader):
         loss = loss_rec + loss_idem
 
         # accumulate the loss
-        total_epoch_loss_rec += total_epoch_loss_rec
-        total_epoch_loss_idem += total_epoch_loss_idem
+        total_epoch_loss_rec += loss_rec
+        total_epoch_loss_idem += loss_idem
 
     print("########################################################")
     print("test")
-    print_testing_to_console({'loss_rec': total_epoch_loss_rec,
-                              'loss_idem': total_epoch_loss_idem})
+    print_testing_to_console({'loss_rec': total_epoch_loss_rec / len(data_loader),
+                              'loss_idem': total_epoch_loss_idem / len(data_loader)})

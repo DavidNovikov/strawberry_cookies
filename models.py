@@ -14,7 +14,7 @@ class encoder_decoder_net_notes_first(nn.Module):
         # decoder
         self.deconv1 = nn.ConvTranspose2d(16, 8, kernel_size=(4, 6), stride=2)
         self.deconv2 = nn.ConvTranspose2d(8, 4, kernel_size=(4, 12), stride=4)
-        self.deconv3 = nn.ConvTranspose2d(4, 2, kernel_size=(4, 10), stride=4)
+        self.deconv3 = nn.ConvTranspose2d(4, 2, kernel_size=(4, 10), stride=2)
         self.deconv4 = nn.ConvTranspose2d(
             2, 1, kernel_size=(22, 1), stride=(2, 1))
 
