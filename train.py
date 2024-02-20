@@ -1,10 +1,7 @@
 import torch
 import os
 import torch.nn.functional as F
-
-
-
-
+import wandb
 
 
 def wasserstein_distance(p_samples, q_samples):
@@ -83,7 +80,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
     """
     f = f.to(device)
     f_copy = f_copy.to(device)
-    f.train()
+
 
     new_exp_dir = make_new_exp()
     tight_loss_coefficient = 0.1
@@ -99,6 +96,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
                  'loss_tight': torch.inf}
 
     for epoch in range(n_epochs):
+        f.train()
         # keep track of the total loss to compare it to the best loss
         total_epoch_loss_rec = 0
         total_epoch_loss_idem = 0
@@ -137,6 +135,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
             total_epoch_loss_idem += loss_idem
             total_epoch_loss_tight += loss_tight
 
+
         total_epoch_loss_rec = total_epoch_loss_rec / len(train_data_loader)
         total_epoch_loss_idem = total_epoch_loss_idem / len(train_data_loader)
         total_epoch_loss_tight = total_epoch_loss_tight / \
@@ -164,10 +163,15 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
         print("train")
         print_training_to_console(losses)
 
-    valid(f, valid_data_loader, device)
+        wandb.log({'Epoch:': epoch,
+                   'Training Loss:': total_epoch_loss, 'Train total_epoch_loss_rec': total_epoch_loss_rec,
+        'Train total_epoch_loss_idem': total_epoch_loss_idem, 'Train total_epoch_loss_tight': total_epoch_loss_tight})
 
 
-def valid(f, data_loader, device):
+        valid(f, valid_data_loader, device, epoch)
+
+
+def valid(f, data_loader, device, epoch):
     """
         This function runs over the training data and reports the reconstruction and idempotent loss
     """
@@ -200,6 +204,10 @@ def valid(f, data_loader, device):
         # accumulate the loss
         total_epoch_loss_rec += loss_rec
         total_epoch_loss_idem += loss_idem
+
+    wandb.log({ 'Epoch:': epoch,'Validation Loss:':  total_epoch_loss_rec / len(data_loader) +  total_epoch_loss_idem / len(data_loader)
+                , 'Validation total_epoch_loss_rec:': total_epoch_loss_rec / len(data_loader),
+                'Validation total_epoch_loss_idem:':  total_epoch_loss_idem / len(data_loader)})
 
     print("########################################################")
     print("valid")
