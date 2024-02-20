@@ -3,7 +3,6 @@ from torch import nn
 import torch.nn.functional as F
 
 
-
 class encoder_decoder_net_notes_first(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
@@ -20,7 +19,7 @@ class encoder_decoder_net_notes_first(nn.Module):
         self.deconv3 = Up_Conv(
             32, 16, kernel_size=(4, 10), stride=2)
         self.deconv4 = Up_Conv(
-            16, 1, kernel_size=(22, 1), stride=(2, 1))
+            16, 1, kernel_size=(22, 1), stride=(2, 1), using_relu=False)
 
         self.sigmoid = nn.Sigmoid()
 
@@ -36,37 +35,48 @@ class encoder_decoder_net_notes_first(nn.Module):
         x = self.deconv3(x)
         x = self.deconv4(x)
         x = self.sigmoid(x/0.001)
-        #x = F.threshold(x, 0.5, 0 )
         return x
 
 
 class Up_Conv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride, *args, **kwargs) -> None:
+    def __init__(self, in_channels, out_channels, kernel_size, stride, using_relu=True, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.conv = nn.ConvTranspose2d(
             in_channels, out_channels, kernel_size=kernel_size, stride=stride)
         self.drop = nn.Dropout(0.3)
         self.norm = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU()
+        self.using_relu = using_relu
+        if self.using_relu:
+            self.relu = nn.ReLU()
 
     def forward(self, x):
-        x = self.relu(self.norm(self.drop(self.conv(x))))
+        x = self.conv(x)
+        x = self.drop(x)
+        x = self.norm(x)
+        if self.using_relu:
+            x = self.relu(x)
         return x
 
 
 class Down_Conv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride, *args, **kwargs) -> None:
+    def __init__(self, in_channels, out_channels, kernel_size, stride, using_relu=True, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.conv = nn.Conv2d(in_channels, out_channels,
                               kernel_size=kernel_size, stride=stride)
         self.drop = nn.Dropout(0.3)
         self.norm = nn.BatchNorm2d(out_channels)
-        self.relu = nn.ReLU()
+        self.using_relu = using_relu
+        if self.using_relu:
+            self.relu = nn.ReLU()
 
     def forward(self, x):
-        x = self.relu(self.norm(self.drop(self.conv(x))))
+        x = self.conv(x)
+        x = self.drop(x)
+        x = self.norm(x)
+        if self.using_relu:
+            x = self.relu(x)
         return x
 
 # class encoder_decoder_net(nn.Module):
