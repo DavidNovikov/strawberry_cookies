@@ -1,4 +1,6 @@
 import os
+
+import wandb
 from torch import optim
 
 from models import encoder_decoder_net_notes_first
@@ -19,7 +21,10 @@ def create_train_param(cfg, train_data_loader, valid_data_loader):
 
 
 def main_learn():
+
     cfg = get_cfg()
+    wandb.init(project='dl4cvproj', name=cfg['run_name'])
+    wandb.login(key='5687569e35bdb10f530f4efa1312a7169e5cb3c3')
     path_to_data = f'{os.getcwd()}\\png_files' if cfg['os'] == 'nt' else f'{os.getcwd()}/png_files'
     data_loader_train, data_loader_valid, data_loader_test = data_set_split(
         path_to_data,
