@@ -7,43 +7,56 @@ class encoder_decoder_net_notes_first(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.conv1 = Down_Conv(1, 16, kernel_size=(22, 1), stride=(2, 1))
-        self.conv2 = Down_Conv(16, 32, kernel_size=(4, 10), stride=2)
-        self.conv3 = Down_Conv(32, 64, kernel_size=(4, 12), stride=4)
-        self.conv4 = Down_Conv(64, 128, kernel_size=(4, 6), stride=2)
+        self.conv1 = Down_Conv(1, 174, kernel_size=(88, 1),stride=(1, 1))
+        self.conv2 = Down_Conv(174, 348, kernel_size=(1, 8), stride=4)
+        self.conv3 = Down_Conv(348, 696, kernel_size=(1, 4), stride=2) #stride=4
+        self.conv4 = Down_Conv(696, 1392, kernel_size=(1, 4), stride=2) #stride=4
 
         # decoder
-        self.deconv1 = Up_Conv(128, 64, kernel_size=(4, 6), stride=2)
-        self.deconv2 = Up_Conv(
-            64, 32, kernel_size=(4, 12), stride=4)
+        self.deconv1 = Up_Conv(1392, 696, kernel_size=(1, 5), stride=2) #stride=4
+        self.deconv2 = Up_Conv(696, 348, kernel_size=(1, 5), stride=2) #stride=4
         self.deconv3 = Up_Conv(
-            32, 16, kernel_size=(4, 10), stride=2)
+            348, 174, kernel_size=(1, 8), stride=4)
         self.deconv4 = Up_Conv(
-            16, 1, kernel_size=(22, 1), stride=(2, 1), using_relu=False)
+            174, 1, kernel_size=(88, 1), using_relu=False, stride=(1,1))
 
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        temperature = 0.0001
         # Encoder
+
         x = self.conv1(x)
+        print(x.shape)
         x = self.conv2(x)
+        print(x.shape)
         x = self.conv3(x)
+        print(x.shape)
         x = self.conv4(x)
+        print(x.shape)
+
+
         # Decoder
         x = self.deconv1(x)
+        print(x.shape)
         x = self.deconv2(x)
+        print(x.shape)
         x = self.deconv3(x)
+        print(x.shape)
         x = self.deconv4(x)
-        x = self.sigmoid(x/0.001)
+        print(x.shape)
+
+
+        x = self.sigmoid(x) #/temperature
         return x
 
 
 class Up_Conv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride, using_relu=True, *args, **kwargs) -> None:
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding = 0, using_relu=True, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.conv = nn.ConvTranspose2d(
-            in_channels, out_channels, kernel_size=kernel_size, stride=stride)
+            in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding)
         self.drop = nn.Dropout(0.3)
         self.norm = nn.BatchNorm2d(out_channels)
         self.using_relu = using_relu
