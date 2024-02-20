@@ -38,8 +38,8 @@ def get_notes(notes_to_parse):
     return {"start": start, "pitch": notes, "dur": durations}
 
 
-def midi2image(midi_path, output_dir, max_repetitions=float("inf"), resolution=0.25, lowerBoundNote=21, upperBoundNote=109,
-               maxSongLength=88 ):
+def midi2image(song_num, midi_path, output_dir, max_repetitions=float("inf"), resolution=0.25, lowerBoundNote=21, upperBoundNote=109,
+               maxSongLength=88):
     mid = converter.parse(midi_path)
 
     instruments = instrument.partitionByInstrument(mid)
@@ -83,13 +83,14 @@ def midi2image(midi_path, output_dir, max_repetitions=float("inf"), resolution=0
                 if not start > index * (maxSongLength + 1) or not dur + start < index * maxSongLength:
                     for j in range(start, start + dur):
                         if j - index * maxSongLength >= 0 and j - index * maxSongLength < maxSongLength:
-                            matrix[pitch - lowerBoundNote, j - index * maxSongLength] = 255
+                            matrix[pitch - lowerBoundNote, j -
+                                   index * maxSongLength] = 255
 
             if matrix.any():  # If matrix contains no notes (only zeros) don't save it
-                imwrite(output_dir +  f"_{instrument_name}_{index}.png",
+                imwrite(output_dir + f"song_{song_num}_{instrument_name}_{index}.png",
                         matrix.astype(np.uint8))
 
-                #imwrite(midi_path.split("/")[-1].replace(".mid", f"_{instrument_name}_{index}.png"),
+                # imwrite(midi_path.split("/")[-1].replace(".mid", f"_{instrument_name}_{index}.png"),
                 #        matrix.astype(np.uint8))
                 index += 1
             else:
