@@ -120,9 +120,9 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
             f_fz = f_copy(fz)
 
             # calculate losses
-            loss_rec = wasserstein_distance(fx, x)
-            loss_idem = wasserstein_distance(f_fz, fz)
-            loss_tight = -wasserstein_distance(ff_z, f_z)
+            loss_rec = F.binary_cross_entropy_with_logits(fx, x)
+            loss_idem = F.binary_cross_entropy_with_logits(f_fz, fz)
+            loss_tight = -F.binary_cross_entropy_with_logits(ff_z, f_z)
 
             # optimize for losses
             loss = loss_rec + loss_idem + loss_tight * tight_loss_coefficient
@@ -195,8 +195,8 @@ def valid(f, data_loader, device, epoch):
         ffz = f(fz)
 
         # calculate losses
-        loss_rec = (fx - x).pow(2).mean()
-        loss_idem = (ffz - fz).pow(2).mean()
+        loss_rec = F.binary_cross_entropy_with_logits(fx ,x)
+        loss_idem = F.binary_cross_entropy_with_logits(ffz , fz)
 
         # optimize for losses
         loss = loss_rec + loss_idem

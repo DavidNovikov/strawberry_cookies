@@ -1,5 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
+import wandb
 
 
 def generator(trained_model, device):
@@ -15,10 +16,12 @@ def generator(trained_model, device):
 
     for i in range(10):
 
-        img_np = out.squeeze().detach().numpy()
+        img_np = out.squeeze().detach().cpu().numpy()
         plt.imshow(img_np, cmap='gray')  # Assuming it's a grayscale image
         plt.axis('off')  # Hide axis
         plt.show()
+        wandb.log({"example_image{i}": wandb.Image(img_np)})
+
 
         out = trained_model(out)
         # Convert the image tensor to a numpy array and remove the first two dimensions

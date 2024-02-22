@@ -31,5 +31,5 @@ def create_data(num_to_extract=-1):
 
 if __name__ == "__main__":
     # create_data()
-    create_data(10)
+    create_data()
     # create_data(100000)
