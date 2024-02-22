@@ -7,19 +7,22 @@ class encoder_decoder_net_notes_first(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.conv1 = Down_Conv(1, 16, kernel_size=(22, 1), stride=(2, 1))
-        self.conv2 = Down_Conv(16, 32, kernel_size=(4, 10), stride=2)
-        self.conv3 = Down_Conv(32, 64, kernel_size=(4, 12), stride=4)
-        self.conv4 = Down_Conv(64, 128, kernel_size=(4, 6), stride=2)
+        self.conv1 = Down_Conv(1, 174, kernel_size=(88, 1), stride=(1, 1))
+        self.conv2 = Down_Conv(174, 348, kernel_size=(1, 8), stride=4)
+        self.conv3 = Down_Conv(
+            348, 696, kernel_size=(1, 4), stride=2)  # stride=4
+        self.conv4 = Down_Conv(
+            696, 1392, kernel_size=(1, 4), stride=2)  # stride=4
 
         # decoder
-        self.deconv1 = Up_Conv(128, 64, kernel_size=(4, 6), stride=2)
-        self.deconv2 = Up_Conv(
-            64, 32, kernel_size=(4, 12), stride=4)
+        self.deconv1 = Up_Conv(
+            1392, 696, kernel_size=(1, 5), stride=2)  # stride=4
+        self.deconv2 = Up_Conv(696, 348, kernel_size=(
+            1, 5), stride=2)  # stride=4:wq:wq
         self.deconv3 = Up_Conv(
-            32, 16, kernel_size=(4, 10), stride=2)
+            348, 174, kernel_size=(1, 8), stride=4)
         self.deconv4 = Up_Conv(
-            16, 1, kernel_size=(22, 1), stride=(2, 1), using_relu=False)
+            174, 1, kernel_size=(88, 1), using_relu=False, stride=(1, 1))
 
         self.sigmoid = nn.Sigmoid()
 

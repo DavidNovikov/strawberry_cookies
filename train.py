@@ -24,6 +24,7 @@ def wasserstein_distance(p_samples, q_samples):
 
     return distance
 
+
 def make_new_exp():
     """
         This function creates a new directory to store the training results and returns it
@@ -81,9 +82,10 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
     f = f.to(device)
     f_copy = f_copy.to(device)
 
-
     new_exp_dir = make_new_exp()
-    tight_loss_coefficient = 0.1
+    rec_loss_coefficient = 1
+    idem_loss_coefficient = 0
+    tight_loss_coefficient = 0
 
     # losses is the loss per loss type per epoch
     losses = {'loss_rec': [],
@@ -120,12 +122,13 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
             f_fz = f_copy(fz)
 
             # calculate losses
-            loss_rec = wasserstein_distance(fx, x)
-            loss_idem = wasserstein_distance(f_fz, fz)
-            loss_tight = -wasserstein_distance(ff_z, f_z)
+            loss_rec = F.binary_cross_entropy_with_logits(fx, x)
+            loss_idem = F.binary_cross_entropy_with_logits(f_fz, fz)
+            loss_tight = F.binary_cross_entropy_with_logits(ff_z, f_z)
 
             # optimize for losses
-            loss = loss_rec + loss_idem + loss_tight * tight_loss_coefficient
+            loss = rec_loss_coefficient * loss_rec + idem_loss_coefficient * \
+                loss_idem + loss_tight * tight_loss_coefficient
             opt.zero_grad()
             loss.backward()
             opt.step()
@@ -134,7 +137,6 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
             total_epoch_loss_rec += loss_rec
             total_epoch_loss_idem += loss_idem
             total_epoch_loss_tight += loss_tight
-
 
         total_epoch_loss_rec = total_epoch_loss_rec / len(train_data_loader)
         total_epoch_loss_idem = total_epoch_loss_idem / len(train_data_loader)
@@ -165,8 +167,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
 
         wandb.log({'Epoch:': epoch,
                    'Training Loss:': total_epoch_loss, 'Train total_epoch_loss_rec': total_epoch_loss_rec,
-        'Train total_epoch_loss_idem': total_epoch_loss_idem, 'Train total_epoch_loss_tight': total_epoch_loss_tight})
-
+                   'Train total_epoch_loss_idem': total_epoch_loss_idem, 'Train total_epoch_loss_tight': total_epoch_loss_tight})
 
         valid(f, valid_data_loader, device, epoch)
 
@@ -205,9 +206,8 @@ def valid(f, data_loader, device, epoch):
         total_epoch_loss_rec += loss_rec
         total_epoch_loss_idem += loss_idem
 
-    wandb.log({ 'Epoch:': epoch,'Validation Loss:':  total_epoch_loss_rec / len(data_loader) +  total_epoch_loss_idem / len(data_loader)
-                , 'Validation total_epoch_loss_rec:': total_epoch_loss_rec / len(data_loader),
-                'Validation total_epoch_loss_idem:':  total_epoch_loss_idem / len(data_loader)})
+    wandb.log({'Epoch:': epoch, 'Validation Loss:':  total_epoch_loss_rec / len(data_loader) + total_epoch_loss_idem / len(data_loader), 'Validation total_epoch_loss_rec:': total_epoch_loss_rec / len(data_loader),
+               'Validation total_epoch_loss_idem:':  total_epoch_loss_idem / len(data_loader)})
 
     print("########################################################")
     print("valid")
