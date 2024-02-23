@@ -1,5 +1,15 @@
 import torch
 import os
+import torch
+import os
+import torch.nn.functional as F
+import wandb
+
+
+
+def symmetric_bce(x, y):
+    # return (F.binary_cross_entropy(x, y) + F.binary_cross_entropy(y, x)) / 2
+    return (x-y).pow(2).mean()
 
 
 def make_new_exp():
@@ -50,14 +60,12 @@ def test(f, data_loader, device):
     total_epoch_loss_rec = 0
     total_epoch_loss_idem = 0
     shape = (1, 1, 88, 88)
-
     for x, _ in data_loader:
-        z = torch.bernoulli(torch.full(shape, 0.1))
-        # z = torch.randn_like(x)
-        # z = (z - z.min()) / (z.max() - z.min())
-
-        # put the data on the device
+        x = x.transpose(1, 2)
         x = x.to(device)
+        # z = torch.bernoulli(torch.full(shape, 0.1))
+        z = torch.randn_like(x)
+        # z = (z - z.min()) / (z.max() - z.min())
         z = z.to(device)
 
         # apply f to get all needed
@@ -66,8 +74,8 @@ def test(f, data_loader, device):
         ffz = f(fz)
 
         # calculate losses
-        loss_rec = (fx - x).pow(2).mean()
-        loss_idem = (ffz - fz).pow(2).mean()
+        loss_rec = F.binary_cross_entropy(fx, x)
+        loss_idem = symmetric_bce(ffz, fz)
 
         # optimize for losses
         loss = loss_rec + loss_idem

@@ -8,15 +8,14 @@ def generator(trained_model, device):
     trained_model = trained_model.to(device)
     trained_model.eval()
 
-    shape = (1, 1, 88, 88)
+    shape = (1, 88, 1, 88)
     #out = torch.bernoulli(torch.full(shape, 0.1))
     out = torch.randn(shape)
-    out = (out - out.min()) / (out.max() - out.min())
     out = out.to(device)
 
     for i in range(10):
 
-        img_np = out.squeeze().detach().cpu().numpy()
+        img_np = out.transpose(1,2).squeeze().detach().cpu().numpy()
         plt.imshow(img_np, cmap='gray')  # Assuming it's a grayscale image
         plt.axis('off')  # Hide axis
         plt.show()
