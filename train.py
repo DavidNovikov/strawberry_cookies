@@ -2,6 +2,32 @@ import torch
 import os
 import torch.nn.functional as F
 import wandb
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torchvision.datasets import ImageFolder
+from torchvision.transforms import transforms
+from matplotlib import pyplot as plt
+import copy
+
+
+
+def imshow(x, norm=False):
+    if torch.is_tensor(x):
+        x = x.detach().cpu()
+    if x.shape[0] <= 3:
+        x = torch.einsum('chw->hwc', x)
+    if x.shape[-1] == 1:
+        plt.imshow(x.squeeze(-1), cmap='gray')
+    else:
+        plt.imshow(x)
+    plt.show()
+
+
+def symmetric_bce(x, y):
+    # return (F.binary_cross_entropy(x, y) + F.binary_cross_entropy(y, x)) / 2
+    return (x-y).pow(2).mean()
 
 
 def wasserstein_distance(p_samples, q_samples):
@@ -103,12 +129,14 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
         total_epoch_loss_tight = 0
         shape = (1, 1, 88, 88)
         for x, _ in train_data_loader:
-            # z = torch.bernoulli(torch.full(shape, 0.1))
-            z = torch.randn_like(x)
-            z = (z - z.min()) / (z.max() - z.min())
+
 
             # put the data on the device
+            x = x.transpose(1,2)
             x = x.to(device)
+            # z = torch.bernoulli(torch.full(shape, 0.1))
+            z = torch.randn_like(x)
+            # z = (z - z.min()) / (z.max() - z.min())
             z = z.to(device)
 
             # apply f to get all needed
@@ -120,9 +148,9 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
             f_fz = f_copy(fz)
 
             # calculate losses
-            loss_rec = wasserstein_distance(fx, x)
-            loss_idem = wasserstein_distance(f_fz, fz)
-            loss_tight = -wasserstein_distance(ff_z, f_z)
+            loss_rec = F.binary_cross_entropy(fx, x)
+            loss_idem = symmetric_bce(f_fz, fz)
+            loss_tight = symmetric_bce(ff_z, f_z)
 
             # optimize for losses
             loss = loss_rec + loss_idem + loss_tight * tight_loss_coefficient
@@ -167,8 +195,20 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
                    'Training Loss:': total_epoch_loss, 'Train total_epoch_loss_rec': total_epoch_loss_rec,
         'Train total_epoch_loss_idem': total_epoch_loss_idem, 'Train total_epoch_loss_tight': total_epoch_loss_tight})
 
+        sz = 5
+        x = (x.transpose(1,2) > 0.25).float()
+        z = (z.transpose(1,2) > 0.25).float()
+        fz = (fz.transpose(1,2) > 0.25).float()
+        f_fz = (f_fz.transpose(1,2) > 0.25).float()
+        fx = (fx.transpose(1,2) > 0.25).float()
+        to_show = torch.cat([x[:sz], fx[:sz], 0.5*torch.ones_like(x[:sz])[:,:,:,:10], z[:sz].clamp(0,0.75), fz[:sz], f_fz[:sz]], -1)
+        to_show = torch.cat(list(to_show), -2)
+        imshow(to_show)
+        wandb.log({"example_image{i}": wandb.Image(to_show)})
 
         valid(f, valid_data_loader, device, epoch)
+
+
 
 
 def valid(f, data_loader, device, epoch):
@@ -181,12 +221,11 @@ def valid(f, data_loader, device, epoch):
     total_epoch_loss_idem = 0
     shape = (1, 1, 88, 88)
     for x, _ in data_loader:
-        z = torch.bernoulli(torch.full(shape, 0.1))
-        # z = torch.randn_like(x)
-        # z = (z - z.min()) / (z.max() - z.min())
-
-        # put the data on the device
+        x = x.transpose(1, 2)
         x = x.to(device)
+        # z = torch.bernoulli(torch.full(shape, 0.1))
+        z = torch.randn_like(x)
+        # z = (z - z.min()) / (z.max() - z.min())
         z = z.to(device)
 
         # apply f to get all needed
@@ -195,8 +234,8 @@ def valid(f, data_loader, device, epoch):
         ffz = f(fz)
 
         # calculate losses
-        loss_rec = (fx - x).pow(2).mean()
-        loss_idem = (ffz - fz).pow(2).mean()
+        loss_rec = F.binary_cross_entropy(fx, x)
+        loss_idem = symmetric_bce(ffz, fz)
 
         # optimize for losses
         loss = loss_rec + loss_idem
