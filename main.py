@@ -5,7 +5,7 @@ from torch import optim
 
 from models import Net
 from train import train
-from test import test
+from _test import test
 from config import get_cfg
 from data_handler import data_set_split
 from generator import generator
