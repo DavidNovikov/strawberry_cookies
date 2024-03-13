@@ -39,13 +39,13 @@ def npz_to_segments(npz_path, output_dir, delta_t, sample_length):
         
         
 # single file example
-
+"""
 if __name__ == "__main__":
     npz_path = "npz/MIDI-Unprocessed_01_R1_2008_01-04_ORIG_MID--AUDIO_01_R1_2008_wav--1_Cui05-08.mid.npz"
     output_dir = "samples"
     delta_t = 25
-    sample_length = 100
-    npz_to_segments(npz_path=npz_path, output_dir=output_dir, delta_t=delta_t, sample_length=100)
+    sample_length = 88
+    npz_to_segments(npz_path=npz_path, output_dir=output_dir, delta_t=delta_t, sample_length=sample_length)
 
 # Full run
 """
@@ -55,7 +55,6 @@ if __name__ == "__main__":
         for file in files:
             if file.endswith(".npz") or file.endswith(".npy"):
                 output_dir = "samples"
-                delta_t = 100
-                sample_length = 1000
-                npz_to_segments(npz_path=npz_dir+file, output_dir=output_dir, delta_t=delta_t, sample_length=100)
-"""
+                delta_t = 20
+                sample_length = 88
+                npz_to_segments(npz_path=npz_dir+file, output_dir=output_dir, delta_t=delta_t, sample_length=sample_length)
