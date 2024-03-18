@@ -17,7 +17,8 @@ def create_train_param(cfg, train_data_loader, valid_data_loader):
     f = Net()
     f_copy = Net()
     opt = optim.Adam(f.parameters(), lr=cfg['lr'])
-    return f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs
+    scheduler = optim.lr_scheduler.StepLR(opt, step_size=10, gamma=0.3)
+    return f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, scheduler
 
 
 def main_learn():
@@ -32,7 +33,7 @@ def main_learn():
     param = create_train_param(cfg, data_loader_train, data_loader_valid)
     train(*param, cfg['device'])
     test(param[1], data_loader_test, cfg['device'])
-    #generator(param[1], cfg['device'])
+    generator(param[1], cfg['device'])
 
 
 if __name__ == '__main__':
