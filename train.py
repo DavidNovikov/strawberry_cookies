@@ -9,6 +9,7 @@ import torch.optim as optim
 from torchvision.datasets import ImageFolder
 from torchvision.transforms import transforms
 from matplotlib import pyplot as plt
+import einops
 import copy
 
 
@@ -107,7 +108,6 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
     f = f.to(device)
     f_copy = f_copy.to(device)
 
-
     new_exp_dir = make_new_exp()
     tight_loss_coefficient = 0.1
 
@@ -127,14 +127,14 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
         total_epoch_loss_rec = 0
         total_epoch_loss_idem = 0
         total_epoch_loss_tight = 0
-        shape = (1, 1, 88, 88)
-        for x, _ in train_data_loader:
-
-
+#        shape = (1, 1, 88, 100)
+#        for x, _ in train_data_loader:
+        for x in train_data_loader:
             # put the data on the device
-            x = x.transpose(1,2)
+            #x = x.transpose(1,2)
             x = x.to(device)
-            #z = torch.bernoulli(torch.full_like(x, 0.1))
+            x = einops.rearrange(x, 'b w h -> b w 1 h')
+            # z = torch.bernoulli(torch.full(shape, 0.1))
             z = torch.randn_like(x)
             # z = (z - z.min()) / (z.max() - z.min())
             z = z.to(device)
@@ -142,6 +142,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
             # apply f to get all needed
             f_copy.load_state_dict(f.state_dict())
             fx = f(x)
+            print(fx.shape)
             fz = f(z)
             f_z = fz.detach()
             ff_z = f(f_z)
@@ -219,9 +220,11 @@ def valid(f, data_loader, device, epoch):
     f.eval()
     total_epoch_loss_rec = 0
     total_epoch_loss_idem = 0
-    shape = (1, 1, 88, 88)
-    for x, _ in data_loader:
-        x = x.transpose(1, 2)
+    #shape = (1, 1, 88, 88)
+#    for x, _ in data_loader:
+    for x in data_loader:
+        #x = x.transpose(1, 2)
+        x = einops.rearrange(x, 'b w h -> b w 1 h')
         x = x.to(device)
         #z = torch.bernoulli(torch.full_like(x, 0.1))
         z = torch.randn_like(x)

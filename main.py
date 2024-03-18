@@ -7,7 +7,8 @@ from models import Net
 from train import train
 from _test import test
 from config import get_cfg
-from data_handler import data_set_split
+#from data_handler import data_set_split
+from data_handler_npz import data_set_split
 from generator import generator
 
 
@@ -26,7 +27,8 @@ def main_learn():
     cfg = get_cfg()
     wandb.init(project='dl4cvproj', name=cfg['run_name'])
     wandb.login(key='5687569e35bdb10f530f4efa1312a7169e5cb3c3')
-    path_to_data = f'{os.getcwd()}\\png_files' if cfg['os'] == 'nt' else f'{os.getcwd()}/png_files'
+#    path_to_data = f'{os.getcwd()}\\png_files' if cfg['os'] == 'nt' else f'{os.getcwd()}/png_files'
+    path_to_data = f'{os.getcwd()}\\samples' if cfg['os'] == 'nt' else f'{os.getcwd()}/samples'
     data_loader_train, data_loader_valid, data_loader_test = data_set_split(
         path_to_data,
         batch_size=128)
