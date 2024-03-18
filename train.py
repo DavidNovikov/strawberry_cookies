@@ -101,7 +101,7 @@ def print_validation_to_console(losses):
     print(f'{rec_loss}{idem_loss}')
 
 
-def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device):
+def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, scheduler, device):
     """
         This function runs n_epochs epochs and saves the training loss at every epoch
     """
@@ -134,7 +134,6 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
             #x = x.transpose(1,2)
             x = x.to(device)
             x = einops.rearrange(x, 'b w h -> b w 1 h')
-            print(x.shape)
             # z = torch.bernoulli(torch.full(shape, 0.1))
             z = torch.randn_like(x)
             # z = (z - z.min()) / (z.max() - z.min())
@@ -165,7 +164,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
             total_epoch_loss_idem += loss_idem
             total_epoch_loss_tight += loss_tight
 
-
+        scheduler.step()
         total_epoch_loss_rec = total_epoch_loss_rec / len(train_data_loader)
         total_epoch_loss_idem = total_epoch_loss_idem / len(train_data_loader)
         total_epoch_loss_tight = total_epoch_loss_tight / \
@@ -205,7 +204,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, device
         fx = (fx.transpose(1,2) > 0.25).float()
         to_show = torch.cat([x[:sz], fx[:sz], 0.5*torch.ones_like(x[:sz])[:,:,:,:10], z[:sz].clamp(0,0.75), fz[:sz], f_fz[:sz]], -1)
         to_show = torch.cat(list(to_show), -2)
-        imshow(to_show)
+        #imshow(to_show)
         wandb.log({"example_image{i}": wandb.Image(to_show)})
 
         valid(f, valid_data_loader, device, epoch)
@@ -227,7 +226,7 @@ def valid(f, data_loader, device, epoch):
         #x = x.transpose(1, 2)
         x = einops.rearrange(x, 'b w h -> b w 1 h')
         x = x.to(device)
-        # z = torch.bernoulli(torch.full(shape, 0.1))
+        #z = torch.bernoulli(torch.full_like(x, 0.1))
         z = torch.randn_like(x)
         # z = (z - z.min()) / (z.max() - z.min())
         z = z.to(device)

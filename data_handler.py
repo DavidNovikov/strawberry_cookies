@@ -31,8 +31,15 @@ def data_set_split(path, train_ratio=0.8, valid_ratio=0.1, test_ratio=0.1, batch
         generator=torch.Generator().manual_seed(42)  # For reproducibility
     )
 
+    # Print the sizes of the datasets
+    print(f"Number of samples in training set: {len(train_set)}")
+    print(f"Number of samples in validation set: {len(valid_set)}")
+    print(f"Number of samples in test set: {len(test_set)}")
+
+
     # Create data loaders for each set
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=batch_size, shuffle=shuffle)
+
     valid_loader = torch.utils.data.DataLoader(valid_set, batch_size=batch_size, shuffle=shuffle)
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size, shuffle=shuffle)
 
