@@ -51,6 +51,8 @@ if __name__ == "__main__":
 """
 if __name__ == "__main__":
     npz_dir = "npz/"
+    if not os.path.exists('samples'):
+        os.makedirs('samples')
     for root, dirs, files in os.walk(npz_dir):
         for file in files:
             if file.endswith(".npz") or file.endswith(".npy"):
