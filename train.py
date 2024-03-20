@@ -11,6 +11,7 @@ from torchvision.transforms import transforms
 from matplotlib import pyplot as plt
 import einops
 import copy
+import cv2
 
 
 
@@ -138,10 +139,20 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
             z = torch.randn_like(x)
             # z = (z - z.min()) / (z.max() - z.min())
             z = z.to(device)
+            
+            z_2 = torch.randn_like(x)
+            z_2 = z_2.to(device)
+            x_modified = torch.cat((x[:,:,:,:44], z_2[:,:,:,44:]), dim=3).to(device)
 
             # apply f to get all needed
             f_copy.load_state_dict(f.state_dict())
             fx = f(x)
+            fx_modified = f(x_modified)
+            # cv2.imwrite('x.png', einops.rearrange(x, 'b w 1 h -> b w h')[0].cpu().numpy()*255)
+            # cv2.imwrite('z_2.png', einops.rearrange(z_2, 'b w 1 h -> b w h')[0].cpu().numpy()*255)
+            # cv2.imwrite('x_modified.png', einops.rearrange(x_modified, 'b w 1 h -> b w h')[0].cpu().numpy()*255)
+            # exit()
+            
             print(fx.shape)
             fz = f(z)
             f_z = fz.detach()
@@ -150,11 +161,12 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
 
             # calculate losses
             loss_rec = F.binary_cross_entropy(fx, x)
+            loss_rec_from_noise = F.binary_cross_entropy(fx_modified, x)
             loss_idem = symmetric_bce(f_fz, fz)
             loss_tight = symmetric_bce(ff_z, f_z)
 
             # optimize for losses
-            loss = loss_rec + loss_idem + loss_tight * tight_loss_coefficient
+            loss = loss_rec + loss_rec_from_noise + loss_idem + loss_tight * tight_loss_coefficient
             opt.zero_grad()
             loss.backward()
             opt.step()
