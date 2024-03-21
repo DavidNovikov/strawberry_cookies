@@ -20,10 +20,10 @@ import os
 def get_cfg():
     dct = {
         'lr':  0.00001,
-        'n_epochs': 20,
+        'n_epochs': 100,
         'device': 'mps' if torch.backends.mps.is_built() else 'cuda' if torch.cuda.is_available() else 'cpu',
         'os': os.name,
-        'run_name': 'run30'
+        'run_name': 'reconstructing_from_0.5_noise'
     }
 
     return dct
