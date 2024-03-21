@@ -42,10 +42,11 @@ def print_testing_to_console(losses):
     print(f'test loss:{rec_loss}{idem_loss}')
 
 
-def test(f, data_loader, device):
+def test(f, data_loader, cfg):
     """
         This function runs over the training data and reports the reconstruction and idempotent loss
     """
+    device = cfg['device']
     f = f.to(device)
     f.eval()
     total_epoch_loss_rec = 0
