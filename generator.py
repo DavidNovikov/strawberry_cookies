@@ -21,7 +21,8 @@ def imshow(x, norm=False):
 
 
 
-def generator(trained_model, device, song_length=132):
+def generator(trained_model, cfg, song_length=132):
+    device = cfg['device']
     trained_model = trained_model.to(device)
     trained_model.eval()
 

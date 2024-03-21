@@ -26,16 +26,16 @@ def main_learn():
 
     cfg = get_cfg()
     wandb.init(project='dl4cvproj', name=cfg['run_name'])
-    wandb.login(key='5687569e35bdb10f530f4efa1312a7169e5cb3c3')
+    wandb.login(key='33da02b9d54fe7947827d5cce1404a6e7f8ebcd5')
 #    path_to_data = f'{os.getcwd()}\\png_files' if cfg['os'] == 'nt' else f'{os.getcwd()}/png_files'
     path_to_data = f'{os.getcwd()}\\samples' if cfg['os'] == 'nt' else f'{os.getcwd()}/samples'
     data_loader_train, data_loader_valid, data_loader_test = data_set_split(
         path_to_data,
         batch_size=128)
     param = create_train_param(cfg, data_loader_train, data_loader_valid)
-    train(*param, cfg['device'])
-    test(param[1], data_loader_test, cfg['device'])
-    generator(param[1], cfg['device'])
+    train(*param, cfg)
+    test(param[1], data_loader_test, cfg)
+    generator(param[1], cfg)
 
 
 if __name__ == '__main__':

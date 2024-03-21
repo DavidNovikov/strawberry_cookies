@@ -51,18 +51,6 @@ def wasserstein_distance(p_samples, q_samples):
 
     return distance
 
-def make_new_exp():
-    """
-        This function creates a new directory to store the training results and returns it
-    """
-    if not os.path.isdir('runs'):
-        os.mkdir('runs')
-    runs = os.listdir('runs')
-    new_exp_dir = f'runs/exp{len(runs)}'
-    os.mkdir(new_exp_dir)
-    return new_exp_dir
-
-
 def save_model_and_meta_data(exp_dir, losses, model, best_loss, current_epoch_loss, optimizer):
     """
         This is a checkpointing function, 
@@ -101,15 +89,16 @@ def print_validation_to_console(losses):
     print(f'{rec_loss}{idem_loss}')
 
 
-def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, scheduler, device):
+def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, scheduler, cfg):
     """
         This function runs n_epochs epochs and saves the training loss at every epoch
     """
+    device = cfg['device']
+    rec_loss_w, rec_from_noise_loss_w, idem_loss_w, tight_loss_w = cfg['rec_loss_w'], cfg['rec_from_noise_loss_w'], cfg['idem_loss_w'], cfg['tight_loss_w']
+    exp_dir = cfg['save_dir']
+    
     f = f.to(device)
     f_copy = f_copy.to(device)
-
-    new_exp_dir = make_new_exp()
-    tight_loss_coefficient = 0.1
 
     # losses is the loss per loss type per epoch
     losses = {'loss_rec': [],
@@ -165,7 +154,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
             loss_tight = symmetric_bce(ff_z, f_z)
 
             # optimize for losses
-            loss = loss_rec + loss_rec_from_noise + loss_idem + loss_tight * tight_loss_coefficient
+            loss = loss_rec * rec_loss_w + loss_rec_from_noise * rec_from_noise_loss_w + loss_idem * idem_loss_w + loss_tight * tight_loss_w
             opt.zero_grad()
             loss.backward()
             opt.step()
@@ -189,7 +178,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
 
         # checkpointing
         save_model_and_meta_data(
-            new_exp_dir, losses, f, best_loss['total_loss'], total_epoch_loss, opt)
+            exp_dir, losses, f, best_loss['total_loss'], total_epoch_loss, opt)
 
         # if we had a better model save it
         if total_epoch_loss < best_loss['total_loss']:
