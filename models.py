@@ -1,12 +1,14 @@
 # MIDINET ARC- SKIP CONECCTIONS
 from torch import nn
 import torch.nn.functional as F
+import torch
 
 
-class Net(nn.Module):
+
+
+class Net_with_skip(nn.Module):
     def __init__(self):
-        super(Net, self).__init__()
-
+        super(Net_with_skip, self).__init__()
         self.encoder = nn.Sequential(
             nn.Conv2d(88, 128, (1, 11), 1, (0, 5)),  # 88
             nn.ReLU(True),
@@ -29,6 +31,81 @@ class Net(nn.Module):
 
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(1024, 512, (1, 11), 1, 0, 0),  # 11
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+            nn.Conv2d(512, 512, (1, 11), 1, (0, 5)),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(768, 256, (1, 2), 2, 0, 0),  # 22 - skip
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            nn.Conv2d(256, 256, (1, 11), 1, (0, 5)),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(512, 128, (1, 2), 2, 0, 0),  # 44 - skip
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.Conv2d(128, 128, (1, 11), 1, (0, 5)),
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(256, 128, (1, 2), 2, 0, 0),  # 88 - skip
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.Conv2d(128, 88, (1, 11), 1, (0, 5)),
+        )
+
+    def forward(self, x):
+        encoder_outputs = []
+
+        for layer in self.encoder:
+            x = layer(x)
+            encoder_outputs.append(x)
+
+        skip_connections = [encoder_outputs[5], encoder_outputs[8], encoder_outputs[11]]
+
+        for i, layer in enumerate(self.decoder):
+            if i in [6, 12, 18]:
+                skip = skip_connections.pop()
+                x = torch.cat((x, skip), dim=1)
+            x = layer(x)
+
+        #return (x * 25).sigmoid()
+        return (x * 25).sigmoid()
+
+
+
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+
+        self.encoder = nn.Sequential(
+            nn.Conv2d(88, 128, (1, 11), 1, (0, 5)),  # 88
+            nn.ReLU(True),
+            nn.MaxPool2d((1, 2)),  # 44
+            #nn.Dropout(0.3),  # Add dropout layer
+            nn.Conv2d(128, 128, (1, 11), 1, (0, 5)),
+            nn.ReLU(True),
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d((1, 2)),  # 22
+            # nn.Dropout(0.3),  # Add dropout layer
+            nn.Conv2d(128, 256, (1, 11), 1, (0, 5)),
+            nn.ReLU(True),
+            nn.MaxPool2d((1, 2)),  # 11
+            # nn.Dropout(0.3),  # Add dropout layer
+            nn.Conv2d(256, 256, (1, 11), 1, (0, 5)),
+            nn.ReLU(True),
+            nn.MaxPool2d((1, 2)),  # 5
+            # nn.Dropout(0.3),  # Add dropout layer
+            nn.Conv2d(256, 512, (1, 11), 1, (0, 5)),
+            nn.ReLU(True),
+            nn.Conv2d(512, 1024, (1, 5), 1, 0),
+            nn.BatchNorm2d(1024),
+        )
+
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose2d(1024, 512, (1, 11), 1, 0, 0),  # 11
             nn.ReLU(True),
             nn.Conv2d(512, 512, (1, 11), 1, (0, 5)),
             nn.ReLU(True),
@@ -37,11 +114,15 @@ class Net(nn.Module):
             nn.Conv2d(256, 256, (1, 11), 1, (0, 5)),
             nn.BatchNorm2d(256),
             nn.ReLU(True),
+            nn.Conv2d(256, 256, (1,1), 1),  # make the model bigger
+            nn.ReLU(True),
             nn.ConvTranspose2d(256, 128, (1, 2), 2, 0, 0),  # 44
             nn.ReLU(True),
             nn.Conv2d(128, 128, (1, 11), 1, (0, 5)),
             nn.ReLU(True),
             nn.ConvTranspose2d(128, 128, (1, 2), 2, 0, 0),  # 88
+            nn.ReLU(True),
+            nn.Conv2d(128, 128, (1,1), 1),  # make the model bigger
             nn.ReLU(True),
             nn.Conv2d(128, 88, (1, 11), 1, (0, 5)),
         )
@@ -50,7 +131,6 @@ class Net(nn.Module):
         x = self.encoder(x)
         x = self.decoder(x)
         return (x * 25).sigmoid()
-
 
 class encoder_decoder_net_notes_first(nn.Module):
     def __init__(self, *args, **kwargs) -> None:
