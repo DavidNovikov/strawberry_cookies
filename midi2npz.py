@@ -10,6 +10,7 @@ from music21 import converter, instrument, note, chord
 import numpy as np
 import os
 
+
 def extractNote(element):
     return int(element.pitch.ps)
 
@@ -44,11 +45,11 @@ def get_notes(notes_to_parse):
     return {"start": start, "pitch": notes, "dur": durations}
 
 
-def midi_to_piano_roll(midi_path, output_dir, resolution=0.25, lowerBoundNote=21, upperBoundNote=109):
+def midi_to_piano_roll(midi_path, output_dir, resolution=(1/12), lowerBoundNote=21, upperBoundNote=109):
     mid = converter.parse(midi_path)
     instruments = instrument.partitionByInstrument(mid)
     data = {}
-    
+
     try:
         for i, instrument_i in enumerate(instruments.parts):
             notes_to_parse = instrument_i.recurse()
@@ -67,19 +68,31 @@ def midi_to_piano_roll(midi_path, output_dir, resolution=0.25, lowerBoundNote=21
         starts = values["start"]
 
         # Determine the maximum length based on the last note's start time and duration
-        song_length = max([start + dur for start, dur in zip(starts, durs)]) / resolution
+        song_length = max(
+            [start + dur for start, dur in zip(starts, durs)]) / resolution
         song_length = int(np.ceil(song_length))
-        
+
         # Initialize the piano roll matrix
         matrix = np.zeros((upperBoundNote - lowerBoundNote, song_length))
 
         for dur, start, pitch in zip(durs, starts, pitches):
-            dur = int(dur / resolution)
-            start = int(start / resolution)
-            for j in range(start, start + dur):
+            dur_fl = dur / resolution
+            dur_int = int(dur_fl)
+            start_fl = start / resolution
+            start_int = int(start_fl)
+
+            diff = dur_fl - dur_int
+            assert diff < 0.015625, f'dropping song'
+            assert dur_int > 1, f'dropping song'
+            diff = start_fl - start_int
+            assert diff < 0.015625, f'dropping song'
+
+            for j in range(start_int, start_int + dur_int):
                 if 0 <= pitch - lowerBoundNote < upperBoundNote - lowerBoundNote:
-                    matrix[pitch - lowerBoundNote, j] = 1  # Using 1s instead of 255 for binary representation
+                    # Using 1s instead of 255 for binary representation
+                    matrix[pitch - lowerBoundNote, j] = 1
 
         # Save the matrix as .npz
-        filename = os.path.join(output_dir, f"{os.path.basename(midi_path).replace('.midi', '')}_{instrument_name}.npz")
+        filename = os.path.join(
+            output_dir, f"{os.path.basename(midi_path).replace('.midi', '')}_{instrument_name}.npz")
         np.savez_compressed(filename, piano_roll=matrix)

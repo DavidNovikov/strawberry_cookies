@@ -10,7 +10,7 @@ def column2notes(column):
             notes.append(i+lowerBoundNote)
     return notes
 
-resolution = 0.25
+resolution = 1/12
 def updateNotes(newNotes,prevNotes): 
     res = {} 
     for note in newNotes:
@@ -71,7 +71,7 @@ def image2midi(image_path):
 
     midi_stream = stream.Stream(output_notes)
 
-    midi_stream.write('midi', fp=image_path.split("/")[-1].replace(".png",".mid"))
+    midi_stream.write('midi', fp=image_path.replace(".png",".mid"))
 
 # import sys
 # image_path = sys.argv[1]
