@@ -5,9 +5,12 @@ Created on Thu Mar  7 12:09:39 2024
 
 @author: samuelge
 """
-
+import threading
 import numpy as np
 import os
+
+npz_dir = "npz_remove_poor_resolution_083/"
+output_dir = f"samples_{npz_dir[4:]}"
 
 def npz_to_segments(npz_path, output_dir, delta_t, sample_length):
     # Load the piano roll
@@ -36,7 +39,12 @@ def npz_to_segments(npz_path, output_dir, delta_t, sample_length):
         # Save the segment
         segment_filename = os.path.join(output_dir, f"{os.path.basename(npz_path).replace('.npz', '')}_segment_{i}.npz")
         np.savez_compressed(segment_filename, piano_roll=segment)
-        
+
+def run_though_list(list_of_files):
+    delta_t = 40
+    sample_length = 88
+    for file in list_of_files:
+        npz_to_segments(npz_path=npz_dir+file, output_dir=output_dir, delta_t=delta_t, sample_length=sample_length)
         
 # single file example
 """
@@ -50,13 +58,27 @@ if __name__ == "__main__":
 # Full run
 """
 if __name__ == "__main__":
-    npz_dir = "npz/"
-    if not os.path.exists('samples'):
-        os.makedirs('samples')
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    num_threads = 10
+    lists = []
+    threads = []
+    idx = 0
+    for i in range(num_threads):
+        lists.append([])
     for root, dirs, files in os.walk(npz_dir):
         for file in files:
             if file.endswith(".npz") or file.endswith(".npy"):
-                output_dir = "samples"
-                delta_t = 20
-                sample_length = 88
-                npz_to_segments(npz_path=npz_dir+file, output_dir=output_dir, delta_t=delta_t, sample_length=sample_length)
+                lists[idx].append(file)
+                idx = (idx + 1) % num_threads
+    
+    for i in range(num_threads):
+        newT = threading.Thread(target=run_though_list, args=(lists[i],))
+        threads.append(newT)
+    
+    for thread in threads:
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+                

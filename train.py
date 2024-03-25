@@ -11,7 +11,7 @@ from torchvision.transforms import transforms
 from matplotlib import pyplot as plt
 import einops
 import copy
-
+from generator import generator
 
 
 def imshow(x, norm=False):
@@ -102,22 +102,33 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
 
     # losses is the loss per loss type per epoch
     losses = {'loss_rec': [],
+              'loss_rec_with_noise': [],
               'loss_idem': [],
               'loss_tight': []}
     # best loss is the best loss, if we get a better loss we should update the best.pt
     best_loss = {'total_loss': torch.inf,
                  'loss_rec': torch.inf,
+                 'loss_rec_with_noise': torch.inf,
                  'loss_idem': torch.inf,
                  'loss_tight': torch.inf}
 
+    print('#'*20, '\n\tStarting Training with config:\n')
+    for key, value in cfg.items():
+      print('\t', str(key), ':\t', str(value))
+    print('\n', '#'*20)
     for epoch in range(n_epochs):
         f.train()
         # keep track of the total loss to compare it to the best loss
         total_epoch_loss_rec = 0
+        total_epoch_loss_rec_with_noise = 0
         total_epoch_loss_idem = 0
         total_epoch_loss_tight = 0
 #        shape = (1, 1, 88, 100)
 #        for x, _ in train_data_loader:
+        x = None
+        z = None
+        z_2 = None
+        x_modified = None
         for x in train_data_loader:
             # put the data on the device
             #x = x.transpose(1,2)
@@ -130,7 +141,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
             
             z_2 = torch.randn_like(x)
             z_2 = z_2.to(device)
-            x_modified = torch.cat((x[:,:,:,:44], z_2[:,:,:,44:]), dim=3).to(device)
+            x_modified = torch.cat((x[:,:,:,:cfg['noise']], z_2[:,:,:,cfg['noise']:]), dim=3).to(device)
 
             # apply f to get all needed
             f_copy.load_state_dict(f.state_dict())
@@ -141,7 +152,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
             # cv2.imwrite('x_modified.png', einops.rearrange(x_modified, 'b w 1 h -> b w h')[0].cpu().numpy()*255)
             # exit()
             
-            print(fx.shape)
+            # print(fx.shape)
             fz = f(z)
             f_z = fz.detach()
             ff_z = f(f_z)
@@ -161,19 +172,24 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
 
             # accumulate the loss
             total_epoch_loss_rec += loss_rec
+            total_epoch_loss_rec_with_noise += loss_rec_from_noise
             total_epoch_loss_idem += loss_idem
             total_epoch_loss_tight += loss_tight
+            
+            torch.cuda.empty_cache()
 
         scheduler.step()
         total_epoch_loss_rec = total_epoch_loss_rec / len(train_data_loader)
+        total_epoch_loss_rec_with_noise = total_epoch_loss_rec_with_noise / len(train_data_loader)
         total_epoch_loss_idem = total_epoch_loss_idem / len(train_data_loader)
         total_epoch_loss_tight = total_epoch_loss_tight / \
             len(train_data_loader)
         # append the individual losses
         losses['loss_rec'].append(total_epoch_loss_rec)
+        losses['loss_rec_with_noise'].append(total_epoch_loss_rec_with_noise)
         losses['loss_idem'].append(total_epoch_loss_idem)
         losses['loss_tight'].append(total_epoch_loss_tight)
-        total_epoch_loss = total_epoch_loss_rec + \
+        total_epoch_loss = total_epoch_loss_rec + total_epoch_loss_rec_with_noise + \
             total_epoch_loss_idem + total_epoch_loss_tight
 
         # checkpointing
@@ -184,6 +200,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
         if total_epoch_loss < best_loss['total_loss']:
             best_loss['total_loss'] = total_epoch_loss
             best_loss['loss_rec'] = total_epoch_loss_rec
+            best_loss['loss_rec_with_noise'] = total_epoch_loss_rec_with_noise
             best_loss['loss_idem'] = total_epoch_loss_idem
             best_loss['loss_tight'] = total_epoch_loss_tight
 
@@ -193,7 +210,8 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
         print_training_to_console(losses)
 
         wandb.log({'Epoch:': epoch,
-                   'Training Loss:': total_epoch_loss, 'Train total_epoch_loss_rec': total_epoch_loss_rec,
+                   'Training Loss:': total_epoch_loss, 'Train total_epoch_loss_rec': total_epoch_loss_rec, 
+                   'Train total_epoch_loss_rec_with_noise': total_epoch_loss_rec_with_noise,
         'Train total_epoch_loss_idem': total_epoch_loss_idem, 'Train total_epoch_loss_tight': total_epoch_loss_tight})
 
         sz = 5
@@ -206,8 +224,10 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
         to_show = torch.cat(list(to_show), -2)
         #imshow(to_show)
         wandb.log({"example_image{i}": wandb.Image(to_show)})
-
-        valid(f, valid_data_loader, device, epoch)
+        
+        with torch.no_grad():
+            valid(f, valid_data_loader, device, epoch)
+            generator(f, cfg, epoch=epoch)
 
 
 

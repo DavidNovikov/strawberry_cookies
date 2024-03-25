@@ -4,7 +4,7 @@ import wandb
 from img2midi import image2midi
 import numpy as np
 from PIL import Image
-
+from models import Net
 
 
 def imshow(x, norm=False):
@@ -21,7 +21,7 @@ def imshow(x, norm=False):
 
 
 
-def generator(trained_model, cfg, song_length=132):
+def generator(trained_model, cfg, song_length=132, epoch=None):
     device = cfg['device']
     trained_model = trained_model.to(device)
     trained_model.eval()
@@ -37,11 +37,22 @@ def generator(trained_model, cfg, song_length=132):
 
     # Iterate to generate the full song
     for _ in range(5):
-        shape = (1, 88, 1, 44)
+        shape = None
+        prev_song = None
+        if 'noise' in cfg:
+            shape = (1, 88, 1, cfg['noise'])
+        else:
+            shape = (1, 88, 1, 44)
         new_noise = torch.randn(shape).to(device)
-        prev_song = generated_song[:,:,:,-44:].transpose(1,2)
+        if 'noise' in cfg:
+            prev_song = generated_song[:,:,:,-(88-cfg['noise']):].transpose(1,2)
+        else:
+            prev_song = generated_song[:,:,:,-44:].transpose(1,2)
         concatenated_tensor = torch.cat((prev_song, new_noise), dim=3)
         #plt.imshow((concatenated_tensor.transpose(1,2)>0.25).float().detach().cpu().squeeze(dim=0).squeeze(dim=0), cmap='gray')
+        print(prev_song.shape)
+        print(new_noise.shape)
+        print(concatenated_tensor.shape)
         new_song = trained_model(concatenated_tensor).transpose(1,2)
         #new_song_two = trained_model(new_song_two.transpose(1,2)).transpose(1,2)
         generated_song = torch.cat((generated_song, new_song[:,:,:,-44:]), dim=3)
@@ -49,9 +60,33 @@ def generator(trained_model, cfg, song_length=132):
         
     final = (generated_song>0.25).float().detach().cpu().squeeze(dim=0).squeeze(dim=0)
     final_np = final.numpy()
-    plt.imsave("final_image.png", final_np, cmap='gray')
+    if 'name' in cfg:
+        plt.imsave(f"final_image{cfg['name']}.png", final_np, cmap='gray')
+    elif 'save_dir' in cfg:
+        plt.imsave(f"{cfg['save_dir']}/sample_at_{epoch if epoch else 0}.png", final_np, cmap='gray')
+    else:
+        plt.imsave("final_image.png", final_np, cmap='gray')
 
 
     plt.imshow(final, cmap='gray')
-    wandb.log({"final": wandb.Image(final)})
-    image2midi("final_image.png")
+    # wandb.log({"final": wandb.Image(final)})
+    if 'name' in cfg:
+        image2midi(f"final_image{cfg['name']}.png")
+    elif 'save_dir' in cfg:
+        image2midi(f"{cfg['save_dir']}/sample_at_{epoch if epoch else 0}.png")
+    else:
+        image2midi("final_image.png")
+    
+if __name__ == "__main__":
+    
+    model_paths = ['runs/exp16/best.pt','runs/exp17/best.pt','runs/exp18/best.pt','runs/exp19/best.pt', 'runs/exp20/best.pt']
+    len_noises = [44, 66, 77, 22, 11]
+    for model_path, len_noise in zip(model_paths, len_noises):
+        checkpoint = torch.load(model_path, map_location=torch.device('cpu'))
+        model = Net()
+
+        model.load_state_dict(checkpoint['model_sd'])
+        cfg = {'device' : 'cpu', 'name': model_path[8:10]
+               , 'noise': len_noise
+               }
+        generator(model, cfg)

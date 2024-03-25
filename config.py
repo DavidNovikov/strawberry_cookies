@@ -30,14 +30,16 @@ def make_new_exp():
 def get_cfg():
     new_exp_dir = make_new_exp()
     dct = {
-        'lr':  0.00001,
-        'n_epochs': 20,
+        'lr':  0.001,
+        'n_epochs': 100,
         'device': 'mps' if torch.backends.mps.is_built() else 'cuda' if torch.cuda.is_available() else 'cpu',
         'os': os.name,
         'save_dir': new_exp_dir,
-        'run_name': '_meaningful_name_',
-        'rec_loss_w': 1.0,
-        'rec_from_noise_loss_w': 0.5,
+        'data_dir': 'samples_remove_poor_resolution_083_drop_high_feq',
+        'run_name': 'gamma_0.3_epochs_25_rec_with_noise_77_lr_p005_resolution_083_drop_high_feq_sum_rec_1_epochs_100',
+        'noise': 77,
+        'rec_loss_w': 0.9,
+        'rec_from_noise_loss_w': 0.1,
         'idem_loss_w': 1.0,
         'tight_loss_w': 0.1,
     }
