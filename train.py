@@ -141,7 +141,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
             
             z_2 = torch.randn_like(x)
             z_2 = z_2.to(device)
-            x_modified = torch.cat((x[:,:,:,:cfg['noise']], z_2[:,:,:,cfg['noise']:]), dim=3).to(device)
+            x_modified = torch.cat((x[:,:,:,:88-cfg['noise']], z_2[:,:,:,:cfg['noise']]), dim=3).to(device)
 
             # apply f to get all needed
             f_copy.load_state_dict(f.state_dict())
@@ -150,7 +150,6 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
             # cv2.imwrite('x.png', einops.rearrange(x, 'b w 1 h -> b w h')[0].cpu().numpy()*255)
             # cv2.imwrite('z_2.png', einops.rearrange(z_2, 'b w 1 h -> b w h')[0].cpu().numpy()*255)
             # cv2.imwrite('x_modified.png', einops.rearrange(x_modified, 'b w 1 h -> b w h')[0].cpu().numpy()*255)
-            # exit()
             
             # print(fx.shape)
             fz = f(z)

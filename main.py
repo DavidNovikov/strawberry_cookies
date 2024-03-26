@@ -19,7 +19,7 @@ def create_train_param(cfg, train_data_loader, valid_data_loader):
     f = Net()
     f_copy = Net()
     opt = optim.Adam(f.parameters(), lr=cfg['lr'])
-    scheduler = optim.lr_scheduler.StepLR(opt, step_size=25, gamma=0.3)
+    scheduler = optim.lr_scheduler.StepLR(opt, step_size=cfg['steps_for_lr'], gamma=cfg['gamma_for_lr'])
     return f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, scheduler
 
 
