@@ -30,14 +30,15 @@ def make_new_exp():
 def get_cfg():
     new_exp_dir = make_new_exp()
     dct = {
-        'lr':  0.001,
-        'n_epochs': 120,
+        'lr':  0.0000001,
+        'n_epochs': 200,
         'device': 'mps' if torch.backends.mps.is_built() else 'cuda' if torch.cuda.is_available() else 'cpu',
         'os': os.name,
         'save_dir': new_exp_dir,
-        'data_dir': 'samples_maestro_remove_poor_resolution_083_drop_high_feq/',
-        'run_name': 'maestro_data_gamma_1_epochs_25_rec_with_noise_11_lr_p001_epochs_1000',
+        'data_dir': 'samples_maestro_remove_poor_resolution_0416_drop_high_feq/',
+        'run_name': 'adding_noise_range_back_samples_maestro_remove_poor_resolution_0416_drop_high_feq_lr_p0000001_epochs_200',
         'noise': 11,
+        'noise_range': 44,
         'rec_loss_w': 0.9,
         'rec_from_noise_loss_w': 0.1,
         'idem_loss_w': 1.0,

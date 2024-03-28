@@ -45,7 +45,7 @@ def get_notes(notes_to_parse):
     return {"start": start, "pitch": notes, "dur": durations}
 
 
-def midi_to_piano_roll(midi_path, output_dir, resolution=(1/12), lowerBoundNote=21, upperBoundNote=109):
+def midi_to_piano_roll(midi_path, output_dir, resolution=(1/24), lowerBoundNote=21, upperBoundNote=109):
     mid = converter.parse(midi_path)
     instruments = instrument.partitionByInstrument(mid)
     data = {}
