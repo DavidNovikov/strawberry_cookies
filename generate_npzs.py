@@ -62,5 +62,5 @@ def generate_npz_for_directory(maestro_dir, npz_dir):
 if __name__ == "__main__":
     # maestro_dir = "midi_files"
     maestro_dir = "maestro-v3.0.0"
-    npz_dir = "npz_maestro_remove_poor_resolution_083_drop_high_feq"
+    npz_dir = "npz_maestro_remove_poor_resolution_0416_drop_high_feq"
     generate_npz_for_directory(maestro_dir, npz_dir)

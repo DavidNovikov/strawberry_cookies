@@ -55,7 +55,7 @@ def generator(trained_model, cfg, song_length=132, epoch=None):
     #plt.imshow((generated_song > 0.25).float().detach().cpu().squeeze(dim=0).squeeze(dim=0), cmap='gray')
 
     # Iterate to generate the full song
-    for _ in range(5):
+    for _ in range(30):
         shape = None
         prev_song = None
         if 'noise' in cfg:
@@ -70,10 +70,10 @@ def generator(trained_model, cfg, song_length=132, epoch=None):
         concatenated_tensor = torch.cat((prev_song, new_noise), dim=3)
         #plt.imshow((concatenated_tensor.transpose(1,2)>0.25).float().detach().cpu().squeeze(dim=0).squeeze(dim=0), cmap='gray')
         new_song = trained_model(concatenated_tensor).transpose(1,2)
-        print('prev_song:', prev_song.shape)
-        print('new_noise:', new_noise.shape)
-        print('new_song:', new_song[:,:,:,-cfg['noise']:].shape)
-        print('concatenated_tensor:', concatenated_tensor.shape)
+        # print('prev_song:', prev_song.shape)
+        # print('new_noise:', new_noise.shape)
+        # print('new_song:', new_song[:,:,:,-cfg['noise']:].shape)
+        # print('concatenated_tensor:', concatenated_tensor.shape)
         #new_song_two = trained_model(new_song_two.transpose(1,2)).transpose(1,2)
         if 'noise' in cfg:
             generated_song = torch.cat((generated_song, new_song[:,:,:,-cfg['noise']:]), dim=3)
@@ -86,7 +86,7 @@ def generator(trained_model, cfg, song_length=132, epoch=None):
     final_np = final.numpy()
     final__cleaned_np = final_cleaned.numpy()
     if 'name' in cfg:
-        plt.imsave(f"final_image{cfg['name']}.png", final_np, cmap='gray')
+        # plt.imsave(f"final_image{cfg['name']}.png", final_np, cmap='gray')
         plt.imsave(f"final_image_cleaned{cfg['name']}.png", final__cleaned_np, cmap='gray')
     elif 'save_dir' in cfg:
         plt.imsave(f"{cfg['save_dir']}/sample_at_{epoch if epoch else 0}.png", final_np, cmap='gray')
@@ -97,7 +97,7 @@ def generator(trained_model, cfg, song_length=132, epoch=None):
     plt.imshow(final, cmap='gray')
     # wandb.log({"final": wandb.Image(final)})
     if 'name' in cfg:
-        image2midi(f"final_image{cfg['name']}.png")
+        # image2midi(f"final_image{cfg['name']}.png")
         image2midi(f"final_image_cleaned{cfg['name']}.png")
     elif 'save_dir' in cfg:
         image2midi(f"{cfg['save_dir']}/sample_at_{epoch if epoch else 0}.png")
@@ -106,7 +106,7 @@ def generator(trained_model, cfg, song_length=132, epoch=None):
     
 if __name__ == "__main__":
     
-    model_paths = ['runs/exp53/best.pt']
+    model_paths = ['runs/exp65/best.pt']
     len_noises = [11]
     for model_path, len_noise in zip(model_paths, len_noises):
         checkpoint = torch.load(model_path, map_location=torch.device('cpu'))

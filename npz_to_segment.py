@@ -9,7 +9,7 @@ import threading
 import numpy as np
 import os
 
-npz_dir = "npz_remove_poor_resolution_083/"
+npz_dir = "npz_maestro_remove_poor_resolution_0416_drop_high_feq/"
 output_dir = f"samples_{npz_dir[4:]}"
 
 def npz_to_segments(npz_path, output_dir, delta_t, sample_length):

@@ -130,6 +130,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
         z_2 = None
         x_modified = None
         for x in train_data_loader:
+            noise = cfg['noise'] if 'noise_range' not in cfg else int(torch.randint(low=0, high=cfg['noise_range'], size=(1,)))
             # put the data on the device
             #x = x.transpose(1,2)
             x = x.to(device)
@@ -141,7 +142,7 @@ def train(f, f_copy, opt, train_data_loader, valid_data_loader, n_epochs, schedu
             
             z_2 = torch.randn_like(x)
             z_2 = z_2.to(device)
-            x_modified = torch.cat((x[:,:,:,:88-cfg['noise']], z_2[:,:,:,:cfg['noise']]), dim=3).to(device)
+            x_modified = torch.cat((x[:,:,:,:88-noise], z_2[:,:,:,:noise]), dim=3).to(device)
 
             # apply f to get all needed
             f_copy.load_state_dict(f.state_dict())

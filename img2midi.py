@@ -10,7 +10,7 @@ def column2notes(column):
             notes.append(i+lowerBoundNote)
     return notes
 
-resolution = 1/12
+resolution = 1/24
 def updateNotes(newNotes,prevNotes): 
     res = {} 
     for note in newNotes:
