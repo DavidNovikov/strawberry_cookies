@@ -28,12 +28,15 @@ def load_npz_files(folder_path):
 def get_qualified_note_rate(pianoroll, threshold=2):
     """Return the ratio of the number of the qualified notes (notes longer than
     `threshold` (in time step)) to the total number of notes in a piano-roll."""
+    pianoroll = pianoroll.T
     padded = np.pad(pianoroll.astype(int), ((1, 1), (0, 0)), 'constant')
     diff = np.diff(padded, axis=0)
     flattened = diff.T.reshape(-1,)
+    
     onsets = (flattened > 0).nonzero()[0]
     offsets = (flattened < 0).nonzero()[0]
     num_qualified_note = (offsets - onsets >= threshold).sum()
+    
     return num_qualified_note / len(onsets)
 
 
@@ -42,10 +45,9 @@ def get_polyphonic_ratio(pianoroll, threshold=2):
     being played is larger than `threshold` to the total number of time steps"""
     return np.sum(np.sum(pianoroll, 1) >= threshold) / pianoroll.shape[0]
 
-
 def get_num_pitch_used(pianoroll):
     """Return the number of unique pitches used in a piano-roll."""
-    return np.sum(np.sum(pianoroll, 0) > 0)
+    return np.sum(np.sum(pianoroll, 1) > 0)
 
 def percentage_of_empty_bars(piano_roll, threshold = 2):
     """
@@ -115,7 +117,7 @@ def COWS(folder_path):
 
 def plot_threshold_effect(func, folder_path, thresholds):
     """
-    Plot the effect of different thresholds on the given function for piano roll images
+    Plot the effect of different thresholds on the given function for piano roll/ image
     stored in npz files in the specified folder.
 
     Parameters:
@@ -163,7 +165,7 @@ def plot_function_output(func, folder_path):
     for piano_roll in piano_rolls:
         outputs.append(func(piano_roll))
 
-    plt.plot(outputs)
+    plt.hist(outputs)
     plt.title('Output of {} on Piano Rolls'.format(func.__name__))
     plt.xlabel('Piano Roll')
     plt.ylabel('Function Output')
