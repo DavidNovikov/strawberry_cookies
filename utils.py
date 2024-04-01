@@ -28,15 +28,13 @@ def load_npz_files(folder_path):
 def get_qualified_note_rate(pianoroll, threshold=2):
     """Return the ratio of the number of the qualified notes (notes longer than
     `threshold` (in time step)) to the total number of notes in a piano-roll."""
-    pianoroll = pianoroll.T
+    pianoroll.shape
     padded = np.pad(pianoroll.astype(int), ((1, 1), (0, 0)), 'constant')
     diff = np.diff(padded, axis=0)
     flattened = diff.T.reshape(-1,)
-    
     onsets = (flattened > 0).nonzero()[0]
     offsets = (flattened < 0).nonzero()[0]
     num_qualified_note = (offsets - onsets >= threshold).sum()
-    
     return num_qualified_note / len(onsets)
 
 
@@ -173,11 +171,68 @@ def plot_function_output(func, folder_path):
     plt.savefig(f'graph_{func.__name__}_{folder_path.replace("/", "")}')
     plt.close()
 
+def compute_threshold_effect(func, piano_rolls, thresholds):
+    percentages = []
+    for piano_roll in piano_rolls:
+        percentages.append([func(piano_roll, threshold) for threshold in thresholds])
+    mean_percentages = np.mean(percentages, axis=0)
+    return thresholds, mean_percentages
 
+def compute_function_output(func, piano_rolls):
+    return [func(piano_roll) for piano_roll in piano_rolls]
+
+def plot_combined_metrics_with_subplots(folder_path):
+    piano_rolls = load_npz_files(folder_path)
+    thresholds = list(range(1, 10))
+
+    # Compute data for threshold effects
+    thresholds_qualified_note_rate, mean_qualified_note_rate = compute_threshold_effect(get_qualified_note_rate, piano_rolls, thresholds)
+    thresholds_polyphonic_ratio, mean_polyphonic_ratio = compute_threshold_effect(get_polyphonic_ratio, piano_rolls, thresholds)
+    thresholds_empty_bars, mean_empty_bars = compute_threshold_effect(percentage_of_empty_bars, piano_rolls, thresholds)
+
+    # Compute data for non-threshold function
+    num_pitch_used = compute_function_output(get_num_pitch_used, piano_rolls)
+
+    # Setup the figure and subplots
+    fig, axs = plt.subplots(2, 2, figsize=(15, 10))  # Adjust figsize as needed
+
+    # Plot for Qualified Note Rate
+    axs[0, 0].plot(thresholds_qualified_note_rate, mean_qualified_note_rate, marker='o')
+    axs[0, 0].set_title('Qualified Note Rate')
+    axs[0, 0].set_xlabel('Threshold')
+    axs[0, 0].set_ylabel('Percentage')
+
+    # Plot for Polyphonic Ratio
+    axs[0, 1].plot(thresholds_polyphonic_ratio, mean_polyphonic_ratio, marker='x')
+    axs[0, 1].set_title('Polyphonic Ratio')
+    axs[0, 1].set_xlabel('Threshold')
+    axs[0, 1].set_ylabel('Percentage')
+
+    # Plot for Percentage of Empty Bars
+    axs[1, 0].plot(thresholds_empty_bars, mean_empty_bars, marker='+')
+    axs[1, 0].set_title('Percentage of Empty Bars')
+    axs[1, 0].set_xlabel('Threshold')
+    axs[1, 0].set_ylabel('Percentage')
+
+    # Plot for Number of Unique Pitches Used
+    axs[1, 1].hist(num_pitch_used, alpha=0.3)
+    axs[1, 1].set_title('Number of Unique Pitches Used')
+    axs[1, 1].set_xlabel('Piano Roll')
+    axs[1, 1].set_ylabel('Count')
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+
+    # Show plot
+    plt.show()
 
 
 if __name__ == '__main__':
-
+    train_folder_path = "samples_for_analysis/"
+    plot_combined_metrics_with_subplots(train_folder_path)
+    our_folder_path = "our_music_for_data_analysis/samples_our_music/"
+    plot_combined_metrics_with_subplots(our_folder_path)
+"""
     train_folder_path = "samples_for_analysis/"
     plot_threshold_effect(get_qualified_note_rate, train_folder_path, range(1,10))
     plot_threshold_effect(get_polyphonic_ratio, train_folder_path, range(1, 10))
@@ -191,4 +246,4 @@ if __name__ == '__main__':
     plot_threshold_effect(percentage_of_empty_bars, our_folder_path, range(1, 10))
     plot_function_output(get_num_pitch_used, our_folder_path)
     COWS(our_folder_path)
-
+"""
